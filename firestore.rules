@@ -1,0 +1,27 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Будь-який залогінений користувач має доступ до спільного бюджету.
+    // УВАГА: реєстрація відкрита — будь-хто, хто знайде URL апки, може
+    // створити акаунт і побачити дані. Щоб обмежити доступ лише вашими
+    // email, закоментуйте функцію нижче і розкоментуйте варіант з allowlist.
+    function isMember() {
+      return request.auth != null;
+    }
+
+    // --- Варіант з обмеженням доступу (рекомендовано після реєстрації обох) ---
+    // function isMember() {
+    //   return request.auth != null
+    //     && request.auth.token.email in [
+    //       'artem@example.com',
+    //       'tasia@example.com',
+    //     ];
+    // }
+
+    match /households/main/{document=**} {
+      allow read, write: if isMember();
+    }
+  }
+}
