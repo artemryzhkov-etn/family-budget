@@ -14,13 +14,18 @@ export function BudgetScreen({ household: h }: Props) {
   const [month, setMonth] = useState(currentMonth());
   const budget = getBudget(h, month);
   const envelopes = sortedEnvelopes(h);
+  // Budget items can reference envelopes that were archived later —
+  // totals must only count what is actually shown (active envelopes).
+  const activeIds = new Set(envelopes.map(e => e.id));
+  const activeItems = budget.items.filter(i => activeIds.has(i.envelopeId));
   const planned = (envelopeId: string) => budget.items.find(i => i.envelopeId === envelopeId)?.planned ?? 0;
 
-  const totalPlanned = budget.items.reduce((s, i) => s + i.planned, 0);
+  const totalPlanned = activeItems.reduce((s, i) => s + i.planned, 0);
   const totalAllocated = envelopes.reduce((s, e) => s + allocatedInMonth(h, e.id, month), 0);
   const totalSpent = envelopes.reduce((s, e) => s + spentInMonth(h, e.id, month), 0);
   const prev = shiftMonth(month, -1);
-  const prevHasBudget = getBudget(h, prev).items.length > 0;
+  const prevActiveItems = getBudget(h, prev).items.filter(i => activeIds.has(i.envelopeId));
+  const prevHasBudget = prevActiveItems.length > 0;
 
   return (
     <div className="space-y-4">
@@ -50,8 +55,8 @@ export function BudgetScreen({ household: h }: Props) {
         ))}
       </Card>
 
-      {budget.items.length === 0 && prevHasBudget && (
-        <Button variant="secondary" className="w-full" onClick={() => api.copyBudget(getBudget(h, prev), month)}>
+      {activeItems.length === 0 && prevHasBudget && (
+        <Button variant="secondary" className="w-full" onClick={() => api.copyBudget({ month: prev, items: prevActiveItems }, month)}>
           <FontAwesomeIcon icon={faCopy} /> Скопіювати план з {monthLabel(prev)}
         </Button>
       )}

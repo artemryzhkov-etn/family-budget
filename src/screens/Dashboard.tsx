@@ -186,6 +186,31 @@ export function AmountDateFields(props: {
           autoFocus
           required
         />
+        <div className="mt-1.5 flex gap-1.5">
+          {([['+', '+'], ['-', '−'], ['*', '×'], ['/', '÷']] as const).map(([op, label]) => (
+            <button
+              key={op}
+              type="button"
+              aria-label={`Додати знак ${label}`}
+              onMouseDown={e => e.preventDefault()}
+              onClick={() => props.setAmount(props.amount + op)}
+              className="flex h-9 w-12 items-center justify-center rounded-lg border border-border bg-secondary text-base font-medium text-secondary-foreground active:bg-accent"
+            >
+              {label}
+            </button>
+          ))}
+          {props.amount !== '' && (
+            <button
+              type="button"
+              aria-label="Стерти останній символ"
+              onMouseDown={e => e.preventDefault()}
+              onClick={() => props.setAmount(props.amount.slice(0, -1))}
+              className="ml-auto flex h-9 w-12 items-center justify-center rounded-lg border border-border bg-secondary text-base text-secondary-foreground active:bg-accent"
+            >
+              ⌫
+            </button>
+          )}
+        </div>
         {expr && (
           <p className={value !== null ? 'mt-1 text-sm font-medium' : 'mt-1 text-sm text-muted-foreground'}>
             {value !== null ? `= ${czk(value)}` : '…'}
